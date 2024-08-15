@@ -1,0 +1,35 @@
+html,
+body {
+  padding: 0;
+  margin: 0;
+  font-family: sans-serif;
+  text-align: center;
+}
+
+.code {
+  font-family: 'Courier New', Courier, monospace;
+  color: #00FF00;
+  background: #000000;
+  padding: 5px;
+  margin: 0px;
+}
+
+/* Basic table styling */
+table {
+  border-collapse: collapse; /* Collapse borders to avoid double borders */
+  width: 100%; /* Make the table full width */
+  display: table;
+}
+
+/* Table rows */
+table tr {
+  display: table-cell; /* Display rows correctly */
+}
+
+/* Table cells */
+table td {
+  display: block; /* Ensure cells are displayed properly */
+  border: 1px solid black; /* Add border to cells */
+  padding: 8px; /* Add padding inside cells */
+  text-align: left; /* Align text to the left */
+}
