@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useState, useMemo, useCallback } from "react";
-import { BaseEditor, Descendant, createEditor, Element as SlateElement, Transforms, Editor } from "slate";
+import { BaseEditor, Descendant, createEditor, Element as SlateElement, Transforms } from "slate";
 import { ReactEditor, Editable, Slate, withReact, RenderElementProps } from "slate-react";
 import "./index.css";
 
@@ -44,25 +44,27 @@ let c = 2;
 // Function to extract table values and calculate sums
 const extractTableValuesAndSum = (nodes: Descendant[]) => {
     const sums: number[] = [];
-    nodes.forEach(node => {
-        if (SlateElement.isElement(node) && node.type === 'table') {
-            node.children.forEach(col => {
-                if (col.type === 'table-col') {
-                    let colSum = 0;
-                    col.children.forEach(cell => {
-                        if (cell.type === 'table-cell') {
-                            const cellText = cell.children[0].text;
-                            const cellValue = parseFloat(cellText);
-                            if (!isNaN(cellValue)) {
-                                colSum += cellValue;
-                            }
-                        }
-                    });
-                    sums.push(colSum);
-                }
-            });
+    const tempnode = nodes[0];
+    if (!(SlateElement.isElement(tempnode) && tempnode.type === 'table')) {
+        return sums;
+    }
+    for (const col of tempnode.children) {
+        if (col.type !== 'table-col') {
+            continue;
         }
-    });
+        for (const cell of col.children) {
+            let colSum = 0; 
+            if (cell.type !== 'table-cell') {
+                continue;
+            }
+            const cellText = cell.children[0].text;
+            const cellValue = parseFloat(cellText);
+            if (!isNaN(cellValue)) {
+                colSum += cellValue;
+            }
+            sums.push(colSum);
+        }
+    }
     return sums;
 };
 
@@ -142,8 +144,6 @@ export const App = () => {
             },
             { at: [0, c-1] }
         );
-        // Manually force an update to trigger a re-render
-        setValue([...value]);
     }
 
     const delColumn = () => {
@@ -189,7 +189,6 @@ export const App = () => {
             <Slate editor={editor} initialValue={initialValue} onChange={handleChange}>
                 <Editable 
                     onKeyDown={(event) => {
-                        console.log(event.key)
                         if (!event.ctrlKey) {
                             if (event.key == 'Enter') {
                                 event.preventDefault()
@@ -210,18 +209,19 @@ export const App = () => {
                                     }
                                 }
                             }
-                        }
-                        switch (event.key) {
-                            case 'Enter': {
-                                event.preventDefault()
-                                addRow()
-                                break
-                            }
+                        } else {
+                            switch (event.key) {
+                                case 'Enter': {
+                                    event.preventDefault()
+                                    addRow()
+                                    break
+                                }
 
-                            case 'Backspace': {
-                                event.preventDefault()
-                                delRow()
-                                break
+                                case 'Backspace': {
+                                    event.preventDefault()
+                                    delRow()
+                                    break
+                                }
                             }
                         }
                     }}
