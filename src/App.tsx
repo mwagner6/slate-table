@@ -124,7 +124,6 @@ export const App = () => {
 
     // Handle editor changes
     const handleChange = useCallback((newValue: Descendant[]) => {
-        console.log('Editor changed:', newValue); // For debugging
         setValue(newValue);
         const calculatedSums = extractTableValuesAndSum(newValue);
         setSums(calculatedSums);
@@ -184,11 +183,47 @@ export const App = () => {
         }
     }
 
+    const { apply } = editor;
+
+    editor.apply = (operation) => {
+        if (operation.type !== 'merge_node') {
+            apply(operation);
+        }
+        console.log(operation);
+        if (operation.type === 'remove_node') {
+            const path = operation.path;
+            const table = editor.children[0];
+            if (!(SlateElement.isElement(table) && table.type === 'table')) {
+                return;
+            }
+            const current = table.children[path[1]];
+            if(!(SlateElement.isElement(current) && current.type === 'table-col')) {
+                return;
+            }
+
+            if (current.children.length < r) {
+                Transforms.insertNodes(
+                    editor,
+                    {
+                        type: 'table-cell',
+                        children: [{
+                            text: ''
+                        }]
+                    },
+                        { at: [0, path[1], r-1]},
+                )
+            }
+        }
+    }
+
     return (
         <div>
             <Slate editor={editor} initialValue={initialValue} onChange={handleChange}>
                 <Editable 
                     onKeyDown={(event) => {
+                        if (event.key == 'Delete') {
+                            event.preventDefault()
+                        }
                         if (!event.ctrlKey) {
                             if (event.key == 'Enter') {
                                 event.preventDefault()
